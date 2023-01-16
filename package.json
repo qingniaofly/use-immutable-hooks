@@ -1,0 +1,44 @@
+{
+  "name": "use-immutable-hooks",
+  "version": "0.1.0",
+  "description": "Use immutable with React hooks",
+  "main": "dist/use-immutable.js",
+  "umd:main": "dist/use-immutable.umd.js",
+  "module": "dist/use-immutable.module.js",
+  "jsnext:main": "dist/use-immutable.module.js",
+  "react-native": "dist/use-immutable.module.js",
+  "typings": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/use-immutable.js",
+      "import": "./dist/use-immutable.module.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "microbundle",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "dist/"
+  ],
+  "keywords": [
+    "immutable",
+    "react",
+    "hooks"
+  ],
+  "author": "qingniaofly",
+  "license": "MIT",
+  "peerDependencies": {
+    "immutable": ">=4.0.0",
+    "react": "^16.8.0 || ^17.0.1 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.56",
+    "immutable": "^4.0.0",
+    "microbundle": "^0.12.4",
+    "typescript": "^4.0.5"
+  }
+}
