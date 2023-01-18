@@ -4,7 +4,7 @@ A hook to use [immutable]
 
 # Installation
 
-`ynpm install immutable use-immutable-hooks`
+`npm install immutable use-immutable-hooks`
 
 # API
 
