@@ -1,14 +1,27 @@
 import { useCallback, useEffect, useRef } from 'react'
-import Immutable from 'immutable'
-import { useImmutable } from './useImmutable'
+import { useImmutable } from './index'
+import { IUpdater, mergeDeep } from './common'
 
-export default function useImmutableList(params: any) {
+export interface ImmutableListHook<T> {
+    list: T[]
+    setList: IUpdater<T[]>
+    updateRow: (key: number | string, row: T, callback: (row: T, updateRow: T, index: number) => void) => void
+    updateRows: (rows: T[], callback: (row: T, updateRow: T, index: number) => void) => void
+}
+
+export interface ImmutableListHookParams<T> {
+    keyField: string
+    data: T[]
+}
+
+export function useImmutableList<S = any>(params: ImmutableListHookParams<S>): ImmutableListHook<S>
+export function useImmutableList(params: any) {
     const { keyField = 'id', data = [] } = params || {}
     const [list, setList] = useImmutable(Array.isArray(data) ? data : [])
     const instance = useRef({ list: data, keyField })
     instance.current.keyField = keyField
 
-    const getUpdateRow = useCallback((list: any[], key: number | string, updateRow: any) => {
+    const getUpdateRow = useCallback((list: any[], key: number | string, updateRow: any, callback: (row: any, updateRow: any, index: number) => void) => {
         const { keyField } = instance.current
         if (!Array.isArray(list)) {
             return
@@ -20,16 +33,20 @@ export default function useImmutableList(params: any) {
             if (key !== row[keyField]) {
                 continue
             }
+
+            if (typeof callback === 'function') {
+                callback(row, updateRow, index)
+            }
             // 修改此对象
-            newRow = (Immutable.fromJS(row) as any).mergeDeep(updateRow).toJS() // { ...row, ...updateRow }
+            newRow = mergeDeep(row, updateRow) // { ...row, ...updateRow }
             index = i
             break
         }
         return { newRow, index }
     }, [])
 
-    const updateRowToList = useCallback((list, key, row) => {
-        const result = getUpdateRow(list, key, row)
+    const updateRowToList = useCallback((list: any[], key: number | string, row: any, callback: (row: any, updateRow: any, index: number) => void) => {
+        const result = getUpdateRow(list, key, row, callback)
         if (!result) {
             return
         }
@@ -41,14 +58,14 @@ export default function useImmutableList(params: any) {
         return list
     }, [])
 
-    const updateRow = useCallback((key: number | string, row: any) => {
+    const updateRow = useCallback((key: number | string, row: any, callback: (row: any, updateRow: any, index: number) => void) => {
         setList((list) => {
-            updateRowToList(list, key, row)
+            updateRowToList(list, key, row, callback)
             return list
         })
     }, [])
 
-    const updateRows = useCallback((rows: any[]) => {
+    const updateRows = useCallback((rows: any[], callback: (row: any, updateRow: any, index: number) => void) => {
         if (!Array.isArray(rows)) {
             return
         }
@@ -59,7 +76,7 @@ export default function useImmutableList(params: any) {
                 if (!key) {
                     return
                 }
-                updateRowToList(list, key, r)
+                updateRowToList(list, key, r, callback)
             })
             return list
         })

@@ -1,6 +1,6 @@
 {
   "name": "use-immutable-hooks",
-  "version": "0.1.0",
+  "version": "0.1.7",
   "description": "Use immutable with React hooks",
   "main": "dist/use-immutable.js",
   "umd:main": "dist/use-immutable.umd.js",

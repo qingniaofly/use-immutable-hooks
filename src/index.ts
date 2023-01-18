@@ -1,6 +1,6 @@
-import { useImmutable, produce } from './useImmutable'
-
+import { useImmutable } from './core'
 export default useImmutable
 
-import useImmutableList from './useImmutableList'
-export { produce, useImmutableList }
+import { produce, factory, mergeDeep } from './core/common'
+import { useImmutableList } from './core/list'
+export { produce, factory, mergeDeep, useImmutableList }
