@@ -31,6 +31,13 @@
   ],
   "author": "qingniaofly",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qingniaofly/use-immutable-hooks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/qingniaofly/use-immutable-hooks/issues"
+  },
   "peerDependencies": {
     "immutable": ">=4.0.0",
     "react": "^16.8.0 || ^17.0.1 || ^18.0.0"
