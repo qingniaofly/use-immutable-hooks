@@ -21,7 +21,7 @@ export function useImmutableList(params: any) {
     const instance = useRef({ list: data, keyField })
     instance.current.keyField = keyField
 
-    const getUpdateRow = useCallback((list: any[], key: number | string, updateRow: any, callback: (row: any, updateRow: any, index: number) => void) => {
+    const getUpdateRow = useCallback((list: any[], updateRowMap: Map<string | number, any>, callback: (row: any, updateRow: any, index: number) => void) => {
         const { keyField } = instance.current
         if (!Array.isArray(list)) {
             return
@@ -30,9 +30,11 @@ export function useImmutableList(params: any) {
         let index = -1
         for (let i = 0, len = list.length; i < len; i++) {
             const row = list[i]
-            if (key !== row[keyField]) {
+            const k = row[keyField]
+            if (!updateRowMap.has(k)) {
                 continue
             }
+            const updateRow = updateRowMap.get(k)
 
             if (typeof callback === 'function') {
                 callback(row, updateRow, index)
@@ -45,8 +47,8 @@ export function useImmutableList(params: any) {
         return { newRow, index }
     }, [])
 
-    const updateRowToList = useCallback((list: any[], key: number | string, row: any, callback: (row: any, updateRow: any, index: number) => void) => {
-        const result = getUpdateRow(list, key, row, callback)
+    const updateRowToList = useCallback((list: any[], updateRowMap: Map<string | number, any>, callback: (row: any, updateRow: any, index: number) => void) => {
+        const result = getUpdateRow(list, updateRowMap, callback)
         if (!result) {
             return
         }
@@ -60,7 +62,9 @@ export function useImmutableList(params: any) {
 
     const updateRow = useCallback((key: number | string, row: any, callback: (row: any, updateRow: any, index: number) => void) => {
         setList((list) => {
-            updateRowToList(list, key, row, callback)
+            const map = new Map()
+            map.set(key, row)
+            updateRowToList(list, map, callback)
             return list
         })
     }, [])
@@ -71,13 +75,16 @@ export function useImmutableList(params: any) {
         }
         const { keyField } = instance.current
         setList((list) => {
+            const map = new Map()
             rows.forEach((r) => {
                 const key = r[keyField]
                 if (!key) {
                     return
                 }
-                updateRowToList(list, key, r, callback)
+                map.set(key, r)
             })
+            updateRowToList(list, map, callback)
+            // 减少时间复杂度为T = O(n)
             return list
         })
     }, [])
