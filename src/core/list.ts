@@ -16,55 +16,61 @@ export interface ImmutableListHookParams<T> {
 
 export function useImmutableList<S = any>(params: ImmutableListHookParams<S>): ImmutableListHook<S>
 export function useImmutableList(params: any) {
-    const { keyField = 'id', data = [] } = params || {}
+    const { keyField = 'id', data = [], debug = false } = params || {}
     const [list, setList] = useImmutable(Array.isArray(data) ? data : [])
-    const instance = useRef({ list: data, keyField })
+    const instance = useRef({ list: data, keyField, debug })
     instance.current.keyField = keyField
+    instance.current.debug = debug
 
-    const getUpdateRow = useCallback((list: any[], updateRowMap: Map<string | number, any>, callback: (row: any, updateRow: any, index: number) => void) => {
+    const getUpdateRow = useCallback((list: any[], updateRowMap: Map<string | number, any>, i: number, callback: (row: any, updateRow: any, index: number) => void) => {
         const { keyField } = instance.current
         if (!Array.isArray(list)) {
             return
         }
         let newRow = null
         let index = -1
-        for (let i = 0, len = list.length; i < len; i++) {
-            const row = list[i]
-            const k = row[keyField]
-            if (!updateRowMap.has(k)) {
-                continue
-            }
+        const row = list[i]
+        const k = row[keyField]
+        if (updateRowMap.has(k)) {
             const updateRow = updateRowMap.get(k)
-
+            index = i
             if (typeof callback === 'function') {
                 callback(row, updateRow, index)
             }
             // 修改此对象
             newRow = mergeDeep(row, updateRow) // { ...row, ...updateRow }
-            index = i
-            break
         }
         return { newRow, index }
     }, [])
 
     const updateRowToList = useCallback((list: any[], updateRowMap: Map<string | number, any>, callback: (row: any, updateRow: any, index: number) => void) => {
-        const result = getUpdateRow(list, updateRowMap, callback)
-        if (!result) {
+        const { debug } = instance.current
+        if (!Array.isArray(list)) {
             return
         }
-        const { newRow, index } = result
-        if (!newRow || index <= -1) {
-            return
+        for (let i = 0, len = list.length; i < len; i++) {
+            const result = getUpdateRow(list, updateRowMap, i, callback)
+            debug && console.log('updateRowToList getUpdateRow result=', result)
+            if (!result) {
+                continue
+            }
+            const { newRow, index } = result
+            if (!newRow || index <= -1) {
+                continue
+            }
+            debug && console.log('updateRowToList newRow=', newRow)
+            list[index] = newRow
         }
-        list[index] = newRow
         return list
     }, [])
 
     const updateRow = useCallback((key: number | string, row: any, callback: (row: any, updateRow: any, index: number) => void) => {
         setList((list) => {
+            const { debug } = instance.current
             const map = new Map()
             map.set(key, row)
             updateRowToList(list, map, callback)
+            debug && console.log('updateRow list=', list)
             return list
         })
     }, [])
@@ -73,8 +79,9 @@ export function useImmutableList(params: any) {
         if (!Array.isArray(rows)) {
             return
         }
-        const { keyField } = instance.current
+
         setList((list) => {
+            const { keyField, debug } = instance.current
             const map = new Map()
             rows.forEach((r) => {
                 const key = r[keyField]
@@ -83,8 +90,9 @@ export function useImmutableList(params: any) {
                 }
                 map.set(key, r)
             })
-            updateRowToList(list, map, callback)
             // 减少时间复杂度为T = O(n)
+            updateRowToList(list, map, callback)
+            debug && console.log('updateRows list=', list)
             return list
         })
     }, [])
